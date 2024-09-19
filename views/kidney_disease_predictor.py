@@ -9,10 +9,10 @@ def display_prediction(pred, prob):
     st.subheader("Prediction")
     if pred[0] == 0:
         prob = "{:.3f}".format(prob[0][0])
-        st.success(f"Heart Disease: NO")
+        st.success(f"Kidney Disease: NO")
     else:
         prob = "{:.3f}".format(prob[0][0])
-        st.error(f"Heart Disease: YES")
+        st.error(f"Kidney Disease: YES")
 
 
 # Application title and description
