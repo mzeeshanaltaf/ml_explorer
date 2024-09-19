@@ -148,8 +148,54 @@ def get_parkinson_disease_data():
     return data
 
 
+# This function reads the data from csv file and return the cleaned data after pre-processing
+def get_wine_quality_data():
+    # Read the data from csv file
+    data = pd.read_csv('data/wine_data.csv')
+    data['quality'] = data['quality'].apply(lambda x: 1 if x > 5 else 0)
+
+    return data
+
+
+# This function reads the data from csv file and return the cleaned data after pre-processing
+def get_algerian_forest_fire_data():
+    # Read the data from csv file
+    data = pd.read_csv('data/algerian_forest_fire_data.csv')
+
+    # Drop month day and year
+    data = data.drop(['day', 'month', 'year'], axis=1)
+
+    # Encoding of categories in classes
+    data['Classes'] = np.where(data['Classes'].str.contains('not fire'), 0, 1)
+
+    return data
+
+
+# This function reads the data from csv file and return the cleaned data after pre-processing
+def get_titanic_survival_data():
+    # Read the data from csv file
+    data = pd.read_csv('data/titanic_dataset.csv')
+
+    # Fill the missing values in Age and Embarked column with mean and mode value respectively
+    data = impute_mean(data, 'Age')
+    data = impute_mode(data, 'Embarked')
+
+    # Drop the Cabin column as it has too many null values
+    data = data.drop('Cabin', axis=1)
+
+    # Converting categorical features to numeric
+    embarked = pd.get_dummies(data['Embarked'], drop_first=True)
+    sex = pd.get_dummies(data['Sex'], drop_first=True)
+    data.drop(['Sex', 'Embarked', 'Name', 'Ticket', 'PassengerId'], axis=1, inplace=True)  # Drop un-necessary columns
+    data = pd.concat([data, sex, embarked], axis=1)  # Concatenate the one-hot encoded columns with data
+    data = data.rename(columns={'male': 'Sex', 'Q': 'Embarked_Q',
+                                'S': 'Embarked_S'})  # Rename to columns to meaningful names
+
+    return data
+
+
 # Function to train the machine learning model
-def train_model(model_name, disease):
+def train_model(model_name, dataset):
     # Available models
     models = {
         "Support Vector Machines": svm.SVC(kernel='linear', probability=True),
@@ -164,7 +210,7 @@ def train_model(model_name, disease):
 
     }
 
-    if disease == "Heart":
+    if dataset == "Heart":
         # Get the data
         data = get_heart_disease_data()
 
@@ -172,7 +218,7 @@ def train_model(model_name, disease):
         X = data.drop(['target'], axis=1)
         y = data['target']
 
-    elif disease == "Diabetes":
+    elif dataset == "Diabetes":
         # Get the data
         data = get_diabetes_disease_data()
 
@@ -180,7 +226,7 @@ def train_model(model_name, disease):
         X = data.drop(['Outcome'], axis=1)
         y = data['Outcome']
 
-    elif disease == "Parkinson":
+    elif dataset == "Parkinson":
         # Get the data
         data = get_parkinson_disease_data()
 
@@ -188,7 +234,7 @@ def train_model(model_name, disease):
         X = data.drop(['status'], axis=1)
         y = data['status']
 
-    elif disease == "Liver":
+    elif dataset == "Liver":
         # Get the data
         data = get_liver_disease_data()
 
@@ -196,13 +242,37 @@ def train_model(model_name, disease):
         X = data.drop(['Dataset'], axis=1)
         y = data['Dataset']
 
-    elif disease == "Kidney":
+    elif dataset == "Kidney":
         # Get the data
         data = get_kidney_disease_data()
 
         # Get the dependent and independent features
         X = data.drop(['classification'], axis=1)
         y = data['classification']
+
+    elif dataset == "Wine":
+        # Get the data
+        data = get_wine_quality_data()
+
+        # Get the dependent and independent features
+        X = data.drop(['quality'], axis=1)
+        y = data['quality']
+
+    elif dataset == "Algerian Forest Fire":
+        # Get the data
+        data = get_algerian_forest_fire_data()
+
+        # Get the dependent and independent features
+        X = data.drop(['Classes'], axis=1)
+        y = data['Classes']
+
+    elif dataset == "Titanic":
+        # Get the data
+        data = get_titanic_survival_data()
+
+        # Get the dependent and independent features
+        X = data.drop(['Survived'], axis=1)
+        y = data['Survived']
 
     # Split the data to training and test set
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)

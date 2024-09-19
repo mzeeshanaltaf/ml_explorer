@@ -333,23 +333,23 @@ def wine_quality_input_parameters():
 
     with st.container(border=True):
         col1, col2, col3 = st.columns(3)
-        fixed_acidity = col1.number_input('Fixed Acidity', min_value=4.0, max_value=16.0, value=7.5)
-        volatile_acidity = col2.number_input('Volatile Acidity', min_value=0.1, max_value=1.6, value=0.5)
-        citric_acid = col3.number_input('Citric Acid', min_value=0.0, max_value=1.0, value=0.3)
+        fixed_acidity = col1.number_input('Fixed Acidity', min_value=4.0, max_value=16.0, value=7.5, step=1.0)
+        volatile_acidity = col2.number_input('Volatile Acidity', min_value=0.1, max_value=1.6, value=0.5, step=0.1)
+        citric_acid = col3.number_input('Citric Acid', min_value=0.0, max_value=1.0, value=0.3, step=0.1)
 
     with st.container(border=True):
         col1, col2, col3, col4 = st.columns(4)
-        residual_sugar = col1.number_input('Residual Sugar', min_value=0.5, max_value=16.0, value=2.5)
-        chlorides = col2.number_input('Chlorides', min_value=0.01, max_value=0.65, value=0.08)
-        free_sulfur_dioxide = col3.number_input('Free Sulfur Dioxide', min_value=1.0, max_value=72.0, value=16.0)
-        total_sulfur_dioxide = col4.number_input('Total Sulfur Dioxide', min_value=6.0, max_value=290.0, value=45.0)
+        residual_sugar = col1.number_input('Residual Sugar', min_value=0.5, max_value=16.0, value=2.5, step=1.0)
+        chlorides = col2.number_input('Chlorides', min_value=0.01, max_value=0.65, value=0.08, step=0.05)
+        free_sulfur_dioxide = col3.number_input('Free Sulfur Dioxide', min_value=1.0, max_value=72.0, value=16.0, step=1.0)
+        total_sulfur_dioxide = col4.number_input('Total Sulfur Dioxide', min_value=6.0, max_value=290.0, value=45.0, step=1.0)
 
     with st.container(border=True):
         col1, col2, col3, col4 = st.columns(4)
         density = col1.number_input('Density', min_value=0.990, max_value=1.05, value=0.996)
-        ph = col2.number_input('pH', min_value=2.0, max_value=4.0, value=3.5)
-        sulphate = col3.number_input('Sulphate', min_value=0.3, max_value=2.0, value=0.65)
-        alcohol = col4.number_input('Alcohol', min_value=8.0, max_value=15.0, value=10.5)
+        ph = col2.number_input('pH', min_value=2.0, max_value=4.0, value=3.5, step=0.1)
+        sulphate = col3.number_input('Sulphate', min_value=0.3, max_value=2.0, value=0.65, step=0.1)
+        alcohol = col4.number_input('Alcohol', min_value=8.0, max_value=15.0, value=10.5, step=1.0)
 
     # Update the input dictionary with user selected values
     input_dict['fixed_acidity'] = fixed_acidity
@@ -389,7 +389,7 @@ def titanic_input_parameters():
 
     with st.container(border=True):
         col1, col2 = st.columns(2)
-        fare = col1.number_input('Passenger Fare', min_value=0.0, max_value=515.0, value=30.0)
+        fare = col1.number_input('Passenger Fare', min_value=0.0, max_value=515.0, value=30.0, step=1.0)
         embarkation_port = col2.selectbox('Port of Embarkation', ('Cherbourg', 'Queenstown', 'Southampton'))
 
     # Update the input dictionary with user selected values
@@ -399,7 +399,17 @@ def titanic_input_parameters():
     input_dict['no_of_parents_children'] = no_of_parents_children
     input_dict['fare'] = fare
     input_dict['gender'] = gender_dic[gender]
-    input_dict['embarkation_port'] = port[embarkation_port]
+    if port[embarkation_port] == 'Q':
+        input_dict['embarkation_port_q'] = True
+        input_dict['embarkation_port_s'] = False
+    elif port[embarkation_port] == 'S':
+        input_dict['embarkation_port_q'] = False
+        input_dict['embarkation_port_s'] = True
+    else:
+        input_dict['embarkation_port_q'] = False
+        input_dict['embarkation_port_s'] = False
+
+    # df = pd.DataFrame([input_dict])
 
     return input_dict
 
@@ -415,22 +425,22 @@ def algerian_forest_fire_input_parameters():
     with st.container(border=True):
         col1, col2, col3, col4 = st.columns(4)
         region = col1.selectbox('Region', ['Sidi-Bel', 'Bejaia'])
-        temperature = col2.slider('Temperature (°C)', min_value=10, value=30, max_value=45)
-        rh = col3.slider('Relative Humidity (%)', min_value=21, value=62, max_value=100)
-        ws = col4.slider('Wind Speed (KM/H)', min_value=5, value=15, max_value=30)
+        temperature = col2.slider('Temperature (°C)', min_value=10, value=25, max_value=45)
+        rh = col3.slider('Relative Humidity (%)', min_value=21, value=90, max_value=100)
+        ws = col4.slider('Wind Speed (KM/H)', min_value=5, value=13, max_value=30)
 
     with st.container(border=True):
         col1, col2, col3, col4 = st.columns(4)
-        rain = col1.number_input('Rain (mm)', min_value=0.0, value=10.0, max_value=20.0)
-        ffmc = col2.number_input('Fine Fuel Moisture Code', min_value=-20.0, value=70.0, max_value=99.0)
-        dmc = col3.number_input('Duff Moisture Code', min_value=0.0, value=15.0, max_value=80.0)
-        dc = col4.number_input('Drought Code', min_value=5.0, value=50.0, max_value=250.0)
+        rain = col1.number_input('Rain (mm)', min_value=0.0, value=2.5, max_value=20.0, step=1.0)
+        ffmc = col2.number_input('Fine Fuel Moisture Code', min_value=-28.0, value=70.0, max_value=99.0, step=1.0)
+        dmc = col3.number_input('Duff Moisture Code', min_value=0.0, value=1.5, max_value=80.0, step=1.0)
+        dc = col4.number_input('Drought Code', min_value=5.0, value=7.0, max_value=250.0, step=1.0)
 
     with st.container(border=True):
         col1, col2, col3 = st.columns(3)
-        isi = col1.number_input('Initial Spread Index', min_value=0.0, value=4.0, max_value=30.0)
-        bui = col2.number_input('Build Up Index', min_value=1.0, value=16.0, max_value=70.0)
-        fwi = col3.number_input('Fire Weather Index', min_value=0.0, value=7.0, max_value=32.0)
+        isi = col1.number_input('Initial Spread Index', min_value=0.0, value=2.0, max_value=30.0, step=1.0)
+        bui = col2.number_input('Build Up Index', min_value=1.0, value=1.5, max_value=70.0, step=1.0)
+        fwi = col3.number_input('Fire Weather Index', min_value=0.0, value=7.0, max_value=32.0, step=1.0)
 
     # Update the input dictionary with user selected values
     input_dict['temperature'] = temperature
