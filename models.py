@@ -194,21 +194,51 @@ def get_titanic_survival_data():
     return data
 
 
-# Function to train the machine learning model
-def train_model(model_name, dataset):
-    # Available models
-    models = {
-        "Support Vector Machines": svm.SVC(kernel='linear', probability=True),
-        "Logistic Regression": LogisticRegression(),
-        "K-Nearest Neighbor": KNeighborsClassifier(n_neighbors=5),
-        "Decision Tree": DecisionTreeClassifier(),
-        "Random Forest": RandomForestClassifier(),
-        "AdaBoost": AdaBoostClassifier(),
-        "Gradient Boost": GradientBoostingClassifier(),
-        "XGBoost": XGBClassifier(),
-        "Gaussian NB": GaussianNB(),
+# This function reads the data from csv file and return the cleaned data after pre-processing
+def get_penguins_data():
+    # Read the data from csv file
+    data = pd.read_csv('data/penguins_cleaned.csv')
 
-    }
+    # Converting categorical features to numeric
+    island = pd.get_dummies(data['island'], drop_first=True)
+    sex = pd.get_dummies(data['sex'], drop_first=True)
+    data.drop(['sex', 'island'], axis=1, inplace=True)  # Drop un-necessary columns
+    data = pd.concat([data, sex, island], axis=1)  # Concatenate the one-hot encoded columns with data
+    data = data.rename(columns={'male': 'sex', 'Dream': 'island_dream',
+                                'Torgersen': 'island_torgersen'})  # Rename to columns to meaningful names
+
+    # Encoding of Species
+    species_mapper = {'Adelie': 0, 'Chinstrap': 1, 'Gentoo': 2}
+
+    def species_encoder(val):
+        return species_mapper[val]
+
+    data['species'] = data['species'].apply(species_encoder)
+    return data
+
+
+# This function reads the data from csv file and return the cleaned data after pre-processing
+def get_iris_data():
+    # Read the data from csv file
+    data = pd.read_csv('data/iris.csv')
+
+    # Encoding of Flower Species
+    species_mapper = {'setosa': 0, 'versicolor': 1, 'virginica': 2}
+
+    def species_encoder(val):
+        return species_mapper[val]
+
+    data['Species'] = data['Species'].apply(species_encoder)
+    return data
+
+
+# Function to train the machine learning model
+def train_model(model_name, dataset, label):
+
+    # Setting the default value of Model Parameters. Parameters will be updated based on dataset selection
+    svm_params = {'C': 1, 'gamma': 'scale', 'kernel': 'rbf', 'probability': True}
+    lr_params = {'C': 1, 'penalty': 'l2', 'solver': 'lbfgs'}
+    knn_params = {'algorithm': 'auto', 'n_neighbors': 5, 'p': 2, 'weights': 'uniform'}
 
     if dataset == "Heart":
         # Get the data
@@ -218,6 +248,11 @@ def train_model(model_name, dataset):
         X = data.drop(['target'], axis=1)
         y = data['target']
 
+        # Model Parameters
+        svm_params = {'C': 50, 'gamma': 0.01, 'kernel': 'linear', 'probability': True}
+        lr_params = {'C': 10, 'penalty': 'l1', 'solver': 'liblinear'}
+        knn_params = {'algorithm': 'auto', 'n_neighbors': 8, 'p': 2, 'weights': 'distance'}
+
     elif dataset == "Diabetes":
         # Get the data
         data = get_diabetes_disease_data()
@@ -225,6 +260,11 @@ def train_model(model_name, dataset):
         # Get the dependent and independent features
         X = data.drop(['Outcome'], axis=1)
         y = data['Outcome']
+
+        # Model Parameters
+        svm_params = {'C': 0.1, 'gamma': 1, 'kernel': 'linear', 'probability': True}
+        lr_params = {'C': 0.1, 'penalty': 'l1', 'solver': 'saga'}
+        knn_params = {'algorithm': 'auto', 'n_neighbors': 5, 'p': 2, 'weights': 'uniform'}
 
     elif dataset == "Parkinson":
         # Get the data
@@ -234,6 +274,11 @@ def train_model(model_name, dataset):
         X = data.drop(['status'], axis=1)
         y = data['status']
 
+        # Model Parameters
+        svm_params = {'C': 10, 'gamma': 0.1, 'kernel': 'rbf', 'probability': True}
+        lr_params = {'C': 10, 'penalty': 'l1', 'solver': 'liblinear'}
+        knn_params = {'algorithm': 'auto', 'n_neighbors': 1, 'p': 2, 'weights': 'uniform'}
+
     elif dataset == "Liver":
         # Get the data
         data = get_liver_disease_data()
@@ -241,6 +286,11 @@ def train_model(model_name, dataset):
         # Get the dependent and independent features
         X = data.drop(['Dataset'], axis=1)
         y = data['Dataset']
+
+        # Model Parameters
+        svm_params = {'C': 1, 'gamma': 0.01, 'kernel': 'rbf', 'probability': True}
+        lr_params = {'C': 100, 'penalty': 'l2', 'solver': 'saga'}
+        knn_params = {'algorithm': 'auto', 'n_neighbors': 9, 'p': 1, 'weights': 'distance'}
 
     elif dataset == "Kidney":
         # Get the data
@@ -250,6 +300,11 @@ def train_model(model_name, dataset):
         X = data.drop(['classification'], axis=1)
         y = data['classification']
 
+        # Model Parameters
+        svm_params = {'C': 1, 'gamma': 0.01, 'kernel': 'rbf', 'probability': True}
+        lr_params = {'C': 100, 'penalty': 'l2', 'solver': 'saga'}
+        knn_params = {'algorithm': 'auto', 'n_neighbors': 1, 'p': 1, 'weights': 'uniform'}
+
     elif dataset == "Wine":
         # Get the data
         data = get_wine_quality_data()
@@ -257,6 +312,11 @@ def train_model(model_name, dataset):
         # Get the dependent and independent features
         X = data.drop(['quality'], axis=1)
         y = data['quality']
+
+        # Model Parameters
+        svm_params = {'C': 40, 'gamma': 0.1, 'kernel': 'rbf', 'probability': True}
+        lr_params = {'C': 0.1, 'penalty': 'l1', 'solver': 'saga'}
+        knn_params = {'algorithm': 'auto', 'n_neighbors': 10, 'p': 1, 'weights': 'distance'}
 
     elif dataset == "Algerian Forest Fire":
         # Get the data
@@ -266,6 +326,11 @@ def train_model(model_name, dataset):
         X = data.drop(['Classes'], axis=1)
         y = data['Classes']
 
+        # Model Parameters
+        svm_params = {'C': 30, 'gamma': 1, 'kernel': 'linear', 'probability': True}
+        lr_params = {'C': 0.1, 'penalty': 'l1', 'solver': 'liblinear'}
+        knn_params = {'algorithm': 'auto', 'n_neighbors': 7, 'p': 1, 'weights': 'uniform'}
+
     elif dataset == "Titanic":
         # Get the data
         data = get_titanic_survival_data()
@@ -273,6 +338,37 @@ def train_model(model_name, dataset):
         # Get the dependent and independent features
         X = data.drop(['Survived'], axis=1)
         y = data['Survived']
+
+        # Model Parameters
+        svm_params = {'C': 10, 'gamma': 0.1, 'kernel': 'rbf', 'probability': True}
+        lr_params = {'C': 1, 'penalty': 'l2', 'solver': 'lbfgs'}
+        knn_params = {'algorithm': 'auto', 'n_neighbors': 10, 'p': 1, 'weights': 'uniform'}
+
+    elif dataset == "Penguin":
+        # Get the data
+        data = get_penguins_data()
+
+        # Get the dependent and independent features
+        X = data.drop(['species'], axis=1)
+        y = data['species']
+
+        # Model Parameters
+        svm_params = {'C': 1, 'gamma': 0.1, 'kernel': 'rbf', 'probability': True}
+        lr_params = {'C': 1.0, 'penalty': 'l1', 'solver': 'liblinear'}
+        knn_params = {'algorithm': 'auto', 'n_neighbors': 2, 'p': 1, 'weights': 'uniform'}
+
+    elif dataset == "Iris":
+        # Get the data
+        data = get_iris_data()
+
+        # Get the dependent and independent features
+        X = data.drop(['Species'], axis=1)
+        y = data['Species']
+
+        # Model Parameters
+        svm_params = {'C': 100, 'gamma': 0.001, 'kernel': 'linear', 'probability': True}
+        lr_params = {'C': 100, 'penalty': 'l1', 'solver': 'saga'}
+        knn_params = {'algorithm': 'auto', 'n_neighbors': 7, 'p': 1, 'weights': 'distance'}
 
     # Split the data to training and test set
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -283,6 +379,20 @@ def train_model(model_name, dataset):
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)
 
+    # Available models
+    models = {
+        "Support Vector Machines": svm.SVC(**svm_params),
+        "Logistic Regression": LogisticRegression(**lr_params),
+        "K-Nearest Neighbor": KNeighborsClassifier(**knn_params),
+        "Decision Tree": DecisionTreeClassifier(),
+        "Random Forest": RandomForestClassifier(),
+        "AdaBoost": AdaBoostClassifier(algorithm='SAMME'),
+        "Gradient Boost": GradientBoostingClassifier(),
+        "XGBoost": XGBClassifier(),
+        "Gaussian NB": GaussianNB(),
+
+    }
+
     # Get the machine learning model selected by user
     model = models[model_name]
 
@@ -292,17 +402,31 @@ def train_model(model_name, dataset):
     # Prediction for test data
     y_pred = model.predict(X_test)
 
+    # Predict probability
+    y_pred_proba = model.predict_proba(X_test)
+
     # Create data frame for storing model performance parameters
     performance_tests = ['Accuracy', 'F1 Score', 'Precision', 'Recall',
                          'ROC AUC Score']  # This will be the name of columns
     df_performance_metric = pd.DataFrame(columns=performance_tests)
 
-    # Get the performance metrics and add them in the data frame
-    df_performance_metric.loc[0, 'Accuracy'] = "{:.2f}".format(accuracy_score(y_test, y_pred))
-    df_performance_metric.loc[0, 'F1 Score'] = "{:.2f}".format(f1_score(y_test, y_pred))
-    df_performance_metric.loc[0, 'Precision'] = "{:.2f}".format(precision_score(y_test, y_pred))
-    df_performance_metric.loc[0, 'Recall'] = "{:.2f}".format(recall_score(y_test, y_pred))
-    df_performance_metric.loc[0, 'ROC AUC Score'] = "{:.2f}".format(roc_auc_score(y_test, y_pred))
+    if label == 'Multi Class':
+        # Get the performance metrics and add them in the data frame
+        df_performance_metric.loc[0, 'Accuracy'] = "{:.2f}".format(accuracy_score(y_test, y_pred))
+        df_performance_metric.loc[0, 'F1 Score'] = "{:.2f}".format(f1_score(y_test, y_pred, average='weighted'))
+        df_performance_metric.loc[0, 'Precision'] = "{:.2f}".format(precision_score(y_test, y_pred, average='weighted'))
+        df_performance_metric.loc[0, 'Recall'] = "{:.2f}".format(recall_score(y_test, y_pred, average='weighted'))
+        df_performance_metric.loc[0, 'ROC AUC Score'] = "{:.2f}".format(roc_auc_score(y_test, y_pred_proba,
+                                                                                      average='weighted',
+                                                                                      multi_class='ovr'))
+
+    else:
+        # Get the performance metrics and add them in the data frame
+        df_performance_metric.loc[0, 'Accuracy'] = "{:.2f}".format(accuracy_score(y_test, y_pred))
+        df_performance_metric.loc[0, 'F1 Score'] = "{:.2f}".format(f1_score(y_test, y_pred))
+        df_performance_metric.loc[0, 'Precision'] = "{:.2f}".format(precision_score(y_test, y_pred))
+        df_performance_metric.loc[0, 'Recall'] = "{:.2f}".format(recall_score(y_test, y_pred))
+        df_performance_metric.loc[0, 'ROC AUC Score'] = "{:.2f}".format(roc_auc_score(y_test, y_pred))
 
     # Confusion Matrix
     cm = confusion_matrix(y_test, y_pred)

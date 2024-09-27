@@ -1,5 +1,9 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 
 # List of supported Machine Learning Models
 supported_models = ["Logistic Regression", "Support Vector Machines", 'K-Nearest Neighbor', "Decision Tree",
@@ -341,8 +345,10 @@ def wine_quality_input_parameters():
         col1, col2, col3, col4 = st.columns(4)
         residual_sugar = col1.number_input('Residual Sugar', min_value=0.5, max_value=16.0, value=2.5, step=1.0)
         chlorides = col2.number_input('Chlorides', min_value=0.01, max_value=0.65, value=0.08, step=0.05)
-        free_sulfur_dioxide = col3.number_input('Free Sulfur Dioxide', min_value=1.0, max_value=72.0, value=16.0, step=1.0)
-        total_sulfur_dioxide = col4.number_input('Total Sulfur Dioxide', min_value=6.0, max_value=290.0, value=45.0, step=1.0)
+        free_sulfur_dioxide = col3.number_input('Free Sulfur Dioxide', min_value=1.0, max_value=72.0, value=16.0,
+                                                step=1.0)
+        total_sulfur_dioxide = col4.number_input('Total Sulfur Dioxide', min_value=6.0, max_value=290.0, value=45.0,
+                                                 step=1.0)
 
     with st.container(border=True):
         col1, col2, col3, col4 = st.columns(4)
@@ -458,6 +464,72 @@ def algerian_forest_fire_input_parameters():
     return input_dict
 
 
+# Get penguin data from the user
+def penguin_input_parameters():
+    # Dictionaries to convert labels to their corresponding integer values
+    gender_dic = {'Male': 1, 'Female': 0}
+
+    # Get  input parameters from user
+    input_dict = {}
+    with st.container(border=True):
+        col1, col2 = st.columns(2)
+        gender = col1.selectbox('Gender', ('Male', 'Female'))
+        island = col2.selectbox('Island', ('Biscoe', 'Dream', 'Torgersen'))
+
+    with st.container(border=True):
+        col1, col2 = st.columns(2)
+        bill_length = col1.slider('Bill Length (mm)', min_value=32.1, max_value=59.6, value=43.9)
+        bill_depth = col2.slider('Bill Depth (mm)', min_value=13.1, max_value=21.5, value=17.2)
+
+    with st.container(border=True):
+        col1, col2 = st.columns(2)
+        flipper_length = col1.slider('Flipper Length (mm)', min_value=172.0, max_value=231.0, value=201.0)
+        body_mass = col2.slider('Body Mass (g)', min_value=2700.0, max_value=6300.0, value=4207.0)
+
+    # Update the input dictionary with user selected values
+    input_dict['bill_length'] = bill_length
+    input_dict['bill_depth'] = bill_depth
+    input_dict['flipper_length'] = flipper_length
+    input_dict['body_mass'] = body_mass
+    input_dict['sex'] = gender_dic[gender]
+
+    if island == 'Biscoe':
+        input_dict['island_dream'] = False
+        input_dict['island_torgersen'] = False
+    elif island == 'Dream':
+        input_dict['island_dream'] = True
+        input_dict['island_torgersen'] = False
+    else:
+        input_dict['island_dream'] = False
+        input_dict['island_torgersen'] = True
+
+    return input_dict
+
+
+# Get penguin data from the user
+def iris_input_parameters():
+    # Get  input parameters from user
+    input_dict = {}
+
+    with st.container(border=True):
+        col1, col2 = st.columns(2)
+        sepal_length = col1.slider('Sepal Length (cm)', min_value=4.3, max_value=7.9, value=5.84)
+        sepal_width = col2.slider('Sepal Width (cm)', min_value=2.0, max_value=4.4, value=3.05)
+
+    with st.container(border=True):
+        col1, col2 = st.columns(2)
+        petal_length = col1.slider('Petal Length (cm)', min_value=1.0, max_value=6.9, value=3.76)
+        petal_width = col2.slider('Petal Width (cm)', min_value=0.1, max_value=2.5, value=1.20)
+
+    # Update the input dictionary with user selected values
+    input_dict['sepal_length'] = sepal_length
+    input_dict['sepal_width'] = sepal_width
+    input_dict['petal_length'] = petal_length
+    input_dict['petal_width'] = petal_width
+
+    return input_dict
+
+
 # Function to display the footer
 def display_performance_metrics(df_performance_metric):
     st.subheader('Performance Metrics')
@@ -479,15 +551,136 @@ def display_performance_metrics(df_performance_metric):
             st.metric('*ROC AUC Score*', value=float(df_performance_metric['ROC AUC Score'].iloc[0]))
 
 
-def display_confusion_matrix(cm):
+# def display_confusion_matrix(cm):
+#     st.subheader('Prediction Outcome Table')
+#     predicted_positive = [cm[0][0], cm[1][0]]
+#     predicted_negative = [cm[0][1], cm[1][1]]
+#
+#     # Data for confusion matrix
+#     data = {'Predicted Positive': predicted_positive,  # [True Positive, False Positive]
+#             'Predicted Negative': predicted_negative}  # [False Negative, True Negative]
+#
+#     # Creating DataFrame
+#     df_confusion_matrix = pd.DataFrame(data, index=['Actual Positive', 'Actual Negative'])
+#     st.dataframe(df_confusion_matrix)
+
+def display_confusion_matrix(cm, labels):
     st.subheader('Prediction Outcome Table')
-    predicted_positive = [cm[0][0], cm[1][0]]
-    predicted_negative = [cm[0][1], cm[1][1]]
 
-    # Data for confusion matrix
-    data = {'Predicted Positive': predicted_positive,  # [True Positive, False Positive]
-            'Predicted Negative': predicted_negative}  # [False Negative, True Negative]
+    # Get the dimensions of the heatmap
+    n = cm.shape[0]
 
-    # Creating DataFrame
-    df_confusion_matrix = pd.DataFrame(data, index=['Actual Positive', 'Actual Negative'])
-    st.dataframe(df_confusion_matrix)
+    # Data for the heatmap
+    data = cm
+
+    # Create a mask to isolate diagonal elements
+    mask = np.eye(data.shape[0], dtype=bool)  # True on diagonal, False elsewhere
+
+    # Extract non-diagonal elements
+    non_diagonal_data = data[~mask]
+
+    # Find min and max values in the non-diagonal elements
+    non_diag_min = non_diagonal_data.min()
+    non_diag_max = non_diagonal_data.max()
+
+    # Create a custom colormap for red shades: start with light red, end with dark red
+    light_red_to_dark_red = LinearSegmentedColormap.from_list('custom_red', ['#fff0f0', '#ff0000'])
+
+    # Green for diagonal
+    green_cmap = ListedColormap(['green'])
+
+    # Plot the heatmap with custom coloring
+    plt.figure(figsize=(6, 6))  # Adjust figure size for an nxn heatmap
+
+    # Plot non-diagonal elements in red with correct shades based on non-diagonal values
+    ax = sns.heatmap(data, mask=mask, cmap=light_red_to_dark_red, annot=True, cbar=False, square=True,
+                     vmin=non_diag_min, vmax=non_diag_max, fmt='d')
+
+    # Plot diagonal elements in green
+    sns.heatmap(data, mask=~mask, cmap=green_cmap, annot=True, cbar=False, square=True, ax=ax, fmt='d')
+
+    # Set tick labels for the x-axis and y-axis
+    ax.set_xticks(np.arange(n) + 0.5)  # Position tick marks in the center of the cells
+    ax.set_yticks(np.arange(n) + 0.5)
+
+    # Set labels for X and Y tick labels dynamically
+    x_labels = labels
+    y_labels = labels
+
+    ax.set_xticklabels(x_labels, fontsize=8)
+    ax.set_yticklabels(y_labels, fontsize=8)
+
+    # Move x-axis labels to the top
+    ax.xaxis.tick_top()  # Place x-axis labels on top
+    ax.tick_params(top=True, bottom=False)  # Disable bottom ticks
+
+    # Set X-axis and Y-axis labels
+    ax.set_xlabel("Predicted Values", fontsize=10)
+    ax.set_ylabel("Actual Values", fontsize=10)
+
+    # Display the heatmap
+    st.pyplot(plt)
+
+
+def display_multi_class_confusion_matrix(cm, labels):
+    st.subheader('Prediction Outcome Table')
+
+    # Get the dimensions of the heatmap
+    n = cm.shape[0]
+
+    # Data for the heatmap
+    data = cm
+
+    # Create a mask to isolate diagonal elements
+    mask = np.eye(data.shape[0], dtype=bool)  # True on diagonal, False elsewhere
+
+    # Extract non-diagonal elements
+    non_diagonal_data = data[~mask]
+
+    # Find min and max values in the non-diagonal elements
+    non_diag_min = non_diagonal_data.min()
+    non_diag_max = non_diagonal_data.max()
+
+    # Create a custom colormap for red shades: start with light red, end with dark red
+    light_red_to_dark_red = LinearSegmentedColormap.from_list('custom_red', ['#fff0f0', '#ff0000'])
+
+    # Green for diagonal
+    green_cmap = ListedColormap(['green'])
+
+    # Plot the heatmap with custom coloring
+    plt.figure(figsize=(6, 6))  # Adjust figure size for an nxn heatmap
+
+    # Plot non-diagonal elements in red with correct shades based on non-diagonal values
+    ax = sns.heatmap(data, mask=mask, cmap=light_red_to_dark_red, annot=True, cbar=False, square=True,
+                     vmin=non_diag_min, vmax=non_diag_max)
+
+    # Plot diagonal elements in green
+    sns.heatmap(data, mask=~mask, cmap=green_cmap, annot=True, cbar=False, square=True, ax=ax)
+
+    # Set tick labels for the x-axis and y-axis
+    ax.set_xticks(np.arange(n) + 0.5)  # Position tick marks in the center of the cells
+    ax.set_yticks(np.arange(n) + 0.5)
+
+    # Set labels for X and Y tick labels dynamically
+    x_labels = labels
+    y_labels = labels
+
+    ax.set_xticklabels(x_labels, fontsize=8)
+    ax.set_yticklabels(y_labels, fontsize=8)
+
+    # Move x-axis labels to the top
+    ax.xaxis.tick_top()  # Place x-axis labels on top
+    ax.tick_params(top=True, bottom=False)  # Disable bottom ticks
+
+    # Set X-axis and Y-axis labels
+    ax.set_xlabel("Predicted Values", fontsize=10)
+    ax.set_ylabel("Actual Values", fontsize=10)
+
+    # Display the heatmap
+    st.pyplot(plt)
+
+
+def display_disclaimer():
+    st.warning('*This application is for information purpose only and should not be considered as medical '
+               'advice or a conclusive diagnosis. Always consult a qualified healthcare professional for an '
+               'accurate diagnosis and personalized medical advice.*')
